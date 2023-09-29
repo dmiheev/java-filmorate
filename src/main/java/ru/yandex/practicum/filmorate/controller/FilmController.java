@@ -1,8 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -16,11 +15,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 @RequiredArgsConstructor
+@Slf4j
 public class FilmController {
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
+    public static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private final Map<Integer, Film> films = new HashMap<>();
     private int maxId = 0;
-
 
     @GetMapping
     public Collection<Film> findAll() {
@@ -29,8 +28,8 @@ public class FilmController {
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
-        int nextValId = generateId();
-        film.setId(nextValId);
+        int nextValId = ++maxId;
+        film = film.toBuilder().id(nextValId).build();
 
         validateFilm(film);
 
@@ -54,21 +53,8 @@ public class FilmController {
         if (films.containsValue(film)) {
             throw new ValidationException("Такой фильм уже создан.");
         }
-        if (film.getName().isBlank()) {
-            throw new ValidationException("Название фильма не может быть пустым.");
-        }
-        if (film.getDescription().length() > 200) {
-            throw new ValidationException("Максимальная длина описания для фильма — 200 символов.");
-        }
-        if (film.getReleaseDate().isBefore(LocalDate.parse("1895-12-28"))) {
+        if (film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
             throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года.");
         }
-        if (film.getDuration() < 0) {
-            throw new ValidationException("Продолжительность фильма должна быть положительной.");
-        }
-    }
-
-    private int generateId() {
-        return ++maxId;
     }
 }
