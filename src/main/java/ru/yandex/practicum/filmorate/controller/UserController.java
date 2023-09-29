@@ -15,49 +15,35 @@ import java.util.Map;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 @Slf4j
-public class UserController {
-    private final Map<Integer, User> users = new HashMap<>();
-    private int maxId = 0;
+public class UserController extends AbstractController<User> {
 
     @GetMapping
-    public Collection<User> findAll() {
-        return users.values();
+    public Collection<User> getAll() {
+        log.debug("Получение всех пользователей, текущее количество: {}", items.size());
+
+        return super.getAll();
     }
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        int nextValId = ++maxId;
-        user = user.toBuilder().id(nextValId).build();
-
-        validateUser(user);
-
-        users.put(nextValId, user);
         log.debug("Создан пользователь {}", user);
 
-        return user;
+        return super.create(user);
     }
 
     @PutMapping
-    public User put(@Valid @RequestBody User user) {
-        validateUser(user);
-
-        users.put(user.getId(), user);
+    public User update(@Valid @RequestBody User user) {
         log.debug("Обновлен пользователь {}", user);
 
-        return user;
+        return super.update(user);
     }
 
-    private void validateUser(User user) {
-        if (users.containsValue(user)) {
-            throw new ValidationException("Такой пользователь уже создан.");
-        }
+    @Override
+    protected void validate(User user) {
+        super.validate(user);
         if (user.getLogin().contains(" ")) {
             throw new ValidationException("Логин содержит пробелы.");
         }
         if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
-    }
-
-    private int generateId() {
-        return ++maxId;
     }
 }

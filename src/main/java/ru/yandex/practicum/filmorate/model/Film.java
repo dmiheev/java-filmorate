@@ -11,14 +11,15 @@ import java.time.LocalDate;
 
 @Data
 @Builder(toBuilder = true)
-public class Film {
-    @EqualsAndHashCode.Exclude
-    private int id;
+public class Film extends AbstractEntity {
     @NotBlank(message = "Название фильма не может быть пустым.")
     private String name;
+
     @Size(min = 1,max = 200, message = "Максимальная длина описания для фильма — 200 символов.")
     private String description;
+
     private LocalDate releaseDate;
+
     @Positive(message = "Продолжительность должна быть положительной.")
     private int duration;
 }
