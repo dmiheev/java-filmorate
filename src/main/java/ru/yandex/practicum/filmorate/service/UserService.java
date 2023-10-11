@@ -8,6 +8,8 @@ import ru.yandex.practicum.filmorate.storage.Storage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService extends AbstractService<User> {
@@ -55,14 +57,12 @@ public class UserService extends AbstractService<User> {
     public List<User> getOurFriends(long userId, long friendId) {
         final User user = storage.get(userId);
         final User friend = storage.get(friendId);
-        List<User> friends = new ArrayList<>();
-        for (Long userFriends : user.getFriendIds()) {
-            for (Long friendFriends : friend.getFriendIds()) {
-                if (friendFriends == userFriends) {
-                    friends.add(storage.get(friendFriends));
-                }
-            }
-        }
-        return friends;
+        Set<Long> userFriendsList = user.getFriendIds();
+        Set<Long> friendFriendsList = friend.getFriendIds();
+
+        return userFriendsList.stream()
+                .filter(friendFriendsList::contains)
+                .map(x -> storage.get(x))
+                .collect(Collectors.toList());
     }
 }

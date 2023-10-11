@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class FilmService extends AbstractService<Film> {
     public static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     public static final Comparator<Film> FILM_COMPARATOR = Comparator.comparingLong(Film::getRate).reversed();
-    Storage<User> userStorage;
+    private final Storage<User> userStorage;
 
     @Autowired
     public FilmService(Storage<Film> storage, Storage<User> userStorage) {

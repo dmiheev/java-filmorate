@@ -7,7 +7,8 @@ import ru.yandex.practicum.filmorate.storage.Storage;
 import java.util.List;
 
 public abstract class AbstractService<T extends StorageData> {
-    Storage<T> storage;
+
+    protected Storage<T> storage;
     private long counter = 0L;
 
     public T create(T data) {

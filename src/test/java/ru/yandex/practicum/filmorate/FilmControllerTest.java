@@ -11,8 +11,7 @@ import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FilmControllerTest {
-    FilmController filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage()));
-
+    private final FilmController filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), new InMemoryUserStorage()));
 
     @Test
     void addFilmWithWrongReleaseDate() {
