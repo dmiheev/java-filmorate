@@ -2,44 +2,63 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Update;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.Collection;
+import java.util.List;
 
 @RestController
-@RequestMapping("/films")
 @RequiredArgsConstructor
 @Slf4j
-public class FilmController extends AbstractController<Film> {
-    public static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+@RequestMapping("/films")
+public class FilmController {
 
-    @GetMapping
-    public Collection<Film> getAll() {
-        log.debug("Получение всех фильмов, текущее количество: {}", items.size());
-        return super.getAll();
+    private final FilmService service;
+
+    @GetMapping()
+    public List<Film> getAllFilms() {
+        final List<Film> films = service.getAll();
+        log.info("Get all films {}", films.size());
+        return films;
     }
 
-    @PostMapping
-    public Film create(@Valid @RequestBody Film film) {
-        log.debug("Создан фильм {}", film);
-        return super.create(film);
+    @PostMapping()
+    public Film addFilm(@Valid @RequestBody final Film film) {
+        log.info("Получен запрос к эндпоинту: POST /film, тело запроса: '{}'", film);
+        return service.create(film);
     }
 
-    @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
-        log.debug("Обновлен фильм {}", film);
-        return super.update(film);
+    @PutMapping()
+    public Film setFilm(@Validated(Update.class) @RequestBody final Film film) {
+        log.info("Получен запрос к эндпоинту: PUT /film, тело запроса: '{}'", film);
+        return service.update(film);
     }
 
-    @Override
-    protected void validate(Film film) {
-        super.validate(film);
-        if (film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
-            throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года.");
-        }
+    @GetMapping("/{id}")
+    public Film get(@PathVariable long id) {
+        log.info("Get film id={}", id);
+        return service.get(id);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable long id, @PathVariable long userId) {
+        log.info("Add like film id={} from user={}", id, userId);
+        service.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable long id, @PathVariable long userId) {
+        log.info("Remove like film id={} from user={}", id, userId);
+        service.removeLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
+        log.info("Get popular films count = {}", count);
+        return service.getPopular(count);
     }
 }
