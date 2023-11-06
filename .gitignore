@@ -46,3 +46,4 @@ build/
 db/*
 .mvn/
 mvn*
+!db/filmorate-er-diagramma.png
