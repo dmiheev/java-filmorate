@@ -31,7 +31,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 @AutoConfigureCache
 @Transactional
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-class FilmoRateApplicationTests {
+class FilmorateApplicationTests {
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
     private final FilmService filmService;
@@ -87,7 +87,7 @@ class FilmoRateApplicationTests {
                 .build();
         secondFilm.setMpa(new Mpa(3, "PG-13"));
         secondFilm.setLikes(new HashSet<>());
-        secondFilm.setGenres(new HashSet<>(Arrays.asList(new Genre(6, "Боевик"))));
+        secondFilm.setGenres(new HashSet<>(List.of(new Genre(6, "Боевик"))));
 
         thirdFilm = Film.builder()
                 .name("One Flew Over the Cuckoo's Nest")
@@ -98,7 +98,7 @@ class FilmoRateApplicationTests {
                 .build();
         thirdFilm.setMpa(new Mpa(4, "R"));
         thirdFilm.setLikes(new HashSet<>());
-        thirdFilm.setGenres(new HashSet<>(Arrays.asList(new Genre(2, "Драма"))));
+        thirdFilm.setGenres(new HashSet<>(List.of(new Genre(2, "Драма"))));
     }
 
     @Test
