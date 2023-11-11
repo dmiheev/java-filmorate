@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
-
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -16,8 +15,8 @@ import java.util.List;
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private UserStorage userStorage;
-    private UserService userService;
+    private final UserStorage userStorage;
+    private final UserService userService;
 
     @Autowired
     public UserController(@Qualifier("userDbStorage") UserStorage userStorage, UserService userService) {

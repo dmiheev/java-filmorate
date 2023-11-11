@@ -15,8 +15,8 @@ import java.util.Set;
 
 @Service
 public class UserService {
-    private UserStorage userStorage;
-    private FriendStorage friendStorage;
+    private final UserStorage userStorage;
+    private final FriendStorage friendStorage;
 
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendStorage friendStorage) {

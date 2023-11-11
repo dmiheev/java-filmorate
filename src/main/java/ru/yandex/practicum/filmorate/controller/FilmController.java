@@ -15,8 +15,8 @@ import java.util.List;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private FilmStorage filmStorage;
-    private FilmService filmService;
+    private final FilmStorage filmStorage;
+    private final FilmService filmService;
 
     @Autowired
     public FilmController(@Qualifier("filmDbStorage") FilmStorage filmStorage, FilmService filmService) {
