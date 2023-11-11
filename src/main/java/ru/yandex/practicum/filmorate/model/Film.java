@@ -1,47 +1,57 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-@Builder(toBuilder = true)
-public class Film extends StorageData {
-    @NotBlank(message = "Название фильма не может быть пустым.")
+@Builder
+public class Film {
+    private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private Long id;
+    @NotBlank
     private String name;
-
-    @Size(min = 1, max = 200, message = "Максимальная длина описания для фильма — 200 символов.")
+    @Size(min = 1, max = 200)
     private String description;
-
+    @NotNull
     private LocalDate releaseDate;
+    @Positive
+    private Integer duration;
+    private Set<Long> likes = new HashSet<>();
+    @NotNull
+    private Mpa mpa;
+    private Set<Genre> genres = new HashSet<>();
 
-    @Positive(message = "Продолжительность должна быть положительной.")
-    private int duration;
-
-    @JsonIgnore
-    private Set<Long> userIds = new HashSet<>();
-
-    @JsonIgnore
-    private long rate = 0;
-
-    public void addLike(long userId) {
-        userIds.add(userId);
-        rate = userIds.size();
+    public Film(Long id, String name, String description, LocalDate releaseDate, Integer duration,
+                Set<Long> likes, Mpa mpa, Set<Genre> genres) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.likes = likes;
+        this.mpa = mpa;
+        this.genres = (genres == null) ? new HashSet<>() : genres;
     }
 
-    public void removeLike(long userId) {
-        userIds.remove(userId);
-        rate = userIds.size();
+    @AssertFalse(message = "Дата релиза не может быть раньше 28 декабря 1895 года")
+    public boolean isReleaseDateLessMinPossibleDate() {
+        return releaseDate != null && releaseDate.isBefore(MIN_RELEASE_DATE);
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", name);
+        values.put("description", description);
+        values.put("release_Date", releaseDate);
+        values.put("duration", duration);
+        values.put("mpa_rating_id", mpa.getId());
+        return values;
     }
 }

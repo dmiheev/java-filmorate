@@ -1,64 +1,75 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Update;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequiredArgsConstructor
-@Slf4j
 @RequestMapping("/films")
+@Slf4j
 public class FilmController {
+    private FilmStorage filmStorage;
+    private FilmService filmService;
 
-    private final FilmService service;
-
-    @GetMapping()
-    public List<Film> getAllFilms() {
-        final List<Film> films = service.getAll();
-        log.info("Get all films {}", films.size());
-        return films;
+    @Autowired
+    public FilmController(@Qualifier("filmDbStorage") FilmStorage filmStorage, FilmService filmService) {
+        this.filmStorage = filmStorage;
+        this.filmService = filmService;
     }
 
-    @PostMapping()
-    public Film addFilm(@Valid @RequestBody final Film film) {
-        log.info("Получен запрос к эндпоинту: POST /film, тело запроса: '{}'", film);
-        return service.create(film);
-    }
-
-    @PutMapping()
-    public Film setFilm(@Validated(Update.class) @RequestBody final Film film) {
-        log.info("Получен запрос к эндпоинту: PUT /film, тело запроса: '{}'", film);
-        return service.update(film);
+    @GetMapping
+    public List<Film> getFilms() {
+        return filmStorage.getFilms();
     }
 
     @GetMapping("/{id}")
-    public Film get(@PathVariable long id) {
-        log.info("Get film id={}", id);
-        return service.get(id);
-    }
-
-    @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable long id, @PathVariable long userId) {
-        log.info("Add like film id={} from user={}", id, userId);
-        service.addLike(id, userId);
-    }
-
-    @DeleteMapping("/{id}/like/{userId}")
-    public void removeLike(@PathVariable long id, @PathVariable long userId) {
-        log.info("Remove like film id={} from user={}", id, userId);
-        service.removeLike(id, userId);
+    public Film getFilmById(@PathVariable Long id) {
+        return filmStorage.getFilmById(id);
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
-        log.info("Get popular films count = {}", count);
-        return service.getPopular(count);
+    public List<Film> getPopular(@RequestParam(name = "count", defaultValue = "10") Integer count) {
+        return filmService.getPopular(count);
+    }
+
+    @ResponseBody
+    @PostMapping
+    public Film create(@Valid @RequestBody Film film) {
+        log.info("Получен POST-запрос к эндпоинту: '/films' на добавление фильма");
+        film = filmStorage.create(film);
+        return film;
+    }
+
+    @ResponseBody
+    @PutMapping
+    public Film update(@Valid @RequestBody Film film) {
+        log.info("Получен PUT-запрос к эндпоинту: '/films' на обновление фильма с ID={}", film.getId());
+        film = filmStorage.update(film);
+        return film;
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Получен PUT-запрос на добавление лайка");
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Получен DELETE-запрос на удаление лайка");
+        filmService.deleteLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}")
+    public Film delete(@PathVariable Long id) {
+        log.info("Получен DELETE-запрос к эндпоинту: '/films' на удаление фильма с ID={}", id);
+        return filmStorage.delete(id);
     }
 }

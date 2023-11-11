@@ -23,8 +23,7 @@ CREATE TABLE IF NOT EXISTS users
 CREATE TABLE IF NOT EXISTS friends
 (
     user_id   bigint REFERENCES users (id),
-    friend_id bigint REFERENCES users (id),
-    status    boolean
+    friend_id bigint REFERENCES users (id)
 );
 
 CREATE TABLE IF NOT EXISTS films
