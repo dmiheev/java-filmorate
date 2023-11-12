@@ -37,12 +37,16 @@ public class Film {
         this.duration = duration;
         this.likes = likes;
         this.mpa = mpa;
-        this.genres = (genres == null) ? new HashSet<>() : genres;
+        this.genres = genres;
     }
 
     @AssertFalse(message = "Дата релиза не может быть раньше 28 декабря 1895 года")
     public boolean isReleaseDateLessMinPossibleDate() {
         return releaseDate != null && releaseDate.isBefore(MIN_RELEASE_DATE);
+    }
+
+    public Set<Genre> getGenres() {
+        return (genres == null) ? new HashSet<>() : genres;
     }
 
     public Map<String, Object> toMap() {
