@@ -26,6 +26,7 @@ public class FilmController {
 
     @GetMapping
     public List<Film> getFilms() {
+        log.info("Получен GET-запрос к эндпоинту: '/films'");
         return filmStorage.getFilms();
     }
 
@@ -37,10 +38,10 @@ public class FilmController {
 
     @GetMapping("/popular")
     public List<Film> getPopular(@RequestParam(name = "count", defaultValue = "10") Integer count) {
+        log.info("Получен GET-запрос к эндпоинту: '/films/popular'");
         return filmService.getPopular(count);
     }
 
-    @ResponseBody
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         log.info("Получен POST-запрос к эндпоинту: '/films' на добавление фильма");
@@ -48,7 +49,6 @@ public class FilmController {
         return film;
     }
 
-    @ResponseBody
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
         log.info("Получен PUT-запрос к эндпоинту: '/films' на обновление фильма с ID={}", film.getId());
