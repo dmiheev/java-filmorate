@@ -1,39 +1,39 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 @Slf4j
 @Component("userDbStorage")
+@RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    public UserDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    static User toUser(ResultSet rs, int rowNum) throws SQLException {
+        return User.builder()
+                .id(rs.getLong("id"))
+                .name(rs.getString("name"))
+                .login(rs.getString("login"))
+                .email(rs.getString("email"))
+                .birthday(rs.getDate("birthday").toLocalDate())
+                .build();
     }
 
     @Override
     public List<User> getUsers() {
-        String sql = "SELECT * FROM users";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new User(
-                rs.getLong("id"),
-                rs.getString("email"),
-                rs.getString("login"),
-                rs.getString("name"),
-                rs.getDate("birthday").toLocalDate(),
-                null)
-        );
+        String sql = "SELECT * FROM users ORDER BY id";
+        return jdbcTemplate.query(sql, UserDbStorage::toUser);
     }
 
     @Override
@@ -48,24 +48,16 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User update(User user) {
-        if (user.getId() == null) {
-            throw new ValidationException("Передан пустой аргумент!");
-        }
-        if (getUserById(user.getId()) != null) {
-            String sqlQuery = "UPDATE users SET " +
-                    "email = ?, login = ?, name = ?, birthday = ? " +
-                    "WHERE id = ?";
-            jdbcTemplate.update(sqlQuery,
-                    user.getEmail(),
-                    user.getLogin(),
-                    user.getName(),
-                    user.getBirthday(),
-                    user.getId());
-            log.info("Пользователь с ID={} успешно обновлен", user.getId());
-            return user;
-        } else {
-            throw new DataNotFoundException("Пользователь с ID=" + user.getId() + " не найден!");
-        }
+        String sql = "update users set name = ?, login = ?, email = ?, birthday = ? where id = ?";
+
+        jdbcTemplate.update(sql,
+                user.getName(),
+                user.getLogin(),
+                user.getEmail(),
+                user.getBirthday(),
+                user.getId());
+
+        return getUserById(user.getId());
     }
 
     @Override
@@ -73,20 +65,12 @@ public class UserDbStorage implements UserStorage {
         if (userId == null) {
             throw new ValidationException("Передан пустой аргумент!");
         }
-        User user;
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("SELECT * FROM users WHERE id = ?", userId);
-        if (userRows.first()) {
-            user = new User(
-                    userRows.getLong("id"),
-                    userRows.getString("email"),
-                    userRows.getString("login"),
-                    userRows.getString("name"),
-                    userRows.getDate("birthday").toLocalDate(),
-                    null);
-        } else {
-            throw new DataNotFoundException("Пользователь с ID=" + userId + " не найден!");
-        }
-        return user;
+        exists(userId);
+        String sql = "SELECT * FROM users WHERE id = ?";
+
+        List<User> users = jdbcTemplate.query(sql, UserDbStorage::toUser, userId);
+
+        return users.get(0);
     }
 
     @Override
@@ -100,5 +84,13 @@ public class UserDbStorage implements UserStorage {
             throw new DataNotFoundException("Пользователь с ID=" + userId + " не найден!");
         }
         return user;
+    }
+
+    @Override
+    public boolean exists(Long id) {
+        String sql = "select case when count(id) > 0 then true else false end from users where id = ?";
+        Boolean exists = jdbcTemplate.queryForObject(sql, Boolean.class, id);
+
+        return exists != null && exists;
     }
 }

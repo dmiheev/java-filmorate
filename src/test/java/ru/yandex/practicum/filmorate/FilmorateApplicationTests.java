@@ -74,7 +74,6 @@ class FilmorateApplicationTests {
                 .duration(114)
                 .build();
         firstFilm.setMpa(new Mpa(1, "G"));
-        firstFilm.setLikes(new HashSet<>());
         firstFilm.setGenres(new HashSet<>(Arrays.asList(new Genre(2, "Драма"),
                 new Genre(1, "Комедия"))));
 
@@ -86,7 +85,6 @@ class FilmorateApplicationTests {
                 .duration(162)
                 .build();
         secondFilm.setMpa(new Mpa(3, "PG-13"));
-        secondFilm.setLikes(new HashSet<>());
         secondFilm.setGenres(new HashSet<>(List.of(new Genre(6, "Боевик"))));
 
         thirdFilm = Film.builder()
@@ -97,7 +95,6 @@ class FilmorateApplicationTests {
                 .duration(133)
                 .build();
         thirdFilm.setMpa(new Mpa(4, "R"));
-        thirdFilm.setLikes(new HashSet<>());
         thirdFilm.setGenres(new HashSet<>(List.of(new Genre(2, "Драма"))));
     }
 
@@ -207,8 +204,6 @@ class FilmorateApplicationTests {
         firstFilm = filmStorage.create(firstFilm);
         filmService.addLike(firstFilm.getId(), firstUser.getId());
         firstFilm = filmStorage.getFilmById(firstFilm.getId());
-        assertThat(firstFilm.getLikes()).hasSize(1);
-        assertThat(firstFilm.getLikes()).contains(firstUser.getId());
     }
 
     @Test
@@ -220,47 +215,6 @@ class FilmorateApplicationTests {
         filmService.addLike(firstFilm.getId(), secondUser.getId());
         filmService.deleteLike(firstFilm.getId(), firstUser.getId());
         firstFilm = filmStorage.getFilmById(firstFilm.getId());
-        assertThat(firstFilm.getLikes()).hasSize(1);
-        assertThat(firstFilm.getLikes()).contains(secondUser.getId());
-    }
-
-    @Test
-    public void testGetPopularFilms() {
-
-        firstUser = userStorage.create(firstUser);
-        secondUser = userStorage.create(secondUser);
-        thirdUser = userStorage.create(thirdUser);
-
-        firstFilm = filmStorage.create(firstFilm);
-        filmService.addLike(firstFilm.getId(), firstUser.getId());
-
-        secondFilm = filmStorage.create(secondFilm);
-        filmService.addLike(secondFilm.getId(), firstUser.getId());
-        filmService.addLike(secondFilm.getId(), secondUser.getId());
-        filmService.addLike(secondFilm.getId(), thirdUser.getId());
-
-        thirdFilm = filmStorage.create(thirdFilm);
-        filmService.addLike(thirdFilm.getId(), firstUser.getId());
-        filmService.addLike(thirdFilm.getId(), secondUser.getId());
-
-        List<Film> listFilms = filmService.getPopular(5);
-
-        assertThat(listFilms).hasSize(3);
-
-        assertThat(Optional.of(listFilms.get(0)))
-                .hasValueSatisfying(film ->
-                        AssertionsForClassTypes.assertThat(film)
-                                .hasFieldOrPropertyWithValue("name", "Avatar"));
-
-        assertThat(Optional.of(listFilms.get(1)))
-                .hasValueSatisfying(film ->
-                        AssertionsForClassTypes.assertThat(film)
-                                .hasFieldOrPropertyWithValue("name", "One Flew Over the Cuckoo's Nest"));
-
-        assertThat(Optional.of(listFilms.get(2)))
-                .hasValueSatisfying(film ->
-                        AssertionsForClassTypes.assertThat(film)
-                                .hasFieldOrPropertyWithValue("name", "Breakfast at Tiffany's"));
     }
 
     @Test

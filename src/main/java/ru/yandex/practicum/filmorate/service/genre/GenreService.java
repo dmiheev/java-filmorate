@@ -1,34 +1,29 @@
 package ru.yandex.practicum.filmorate.service.genre;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class GenreService {
 
     private final GenreStorage genreStorage;
 
-    @Autowired
-    public GenreService(GenreStorage genreStorage) {
-        this.genreStorage = genreStorage;
-    }
-
     public Collection<Genre> getGenres() {
-        return genreStorage.getGenres().stream()
-                .sorted(Comparator.comparing(Genre::getId))
-                .collect(Collectors.toList());
+        return genreStorage.getGenres();
     }
 
     public Genre getGenreById(Integer id) {
+        exists(id);
         return genreStorage.getGenreById(id);
     }
 
@@ -39,5 +34,18 @@ public class GenreService {
 
     public Set<Genre> getFilmGenres(Long filmId) {
         return new HashSet<>(genreStorage.getFilmGenres(filmId));
+    }
+
+    public void exists(Integer id) {
+        if (id != null && !genreStorage.exists(id)) {
+            throw new DataNotFoundException(String.format("Не найден жанр по id = %d.", id));
+        }
+    }
+
+    private void validate(Genre genre) {
+        if (genre == null) {
+            throw new ValidationException("Передан пустой объект жанра.");
+        }
+        exists(genre.getId());
     }
 }

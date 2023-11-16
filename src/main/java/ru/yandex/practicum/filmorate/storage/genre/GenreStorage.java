@@ -1,49 +1,43 @@
 package ru.yandex.practicum.filmorate.storage.genre;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 
 @Component
+@RequiredArgsConstructor
 public class GenreStorage {
     private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    public GenreStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    static Genre toGenre(ResultSet rs, int rowNum) throws SQLException {
+        return Genre.builder()
+                .id(rs.getInt("id"))
+                .name(rs.getString("name"))
+                .build();
     }
 
     public List<Genre> getGenres() {
-        String sql = "SELECT * FROM genres";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(
-                rs.getInt("id"),
-                rs.getString("name"))
-        );
+        String sql = "SELECT * FROM genres ORDER BY id";
+        return jdbcTemplate.query(sql, GenreStorage::toGenre);
     }
 
     public Genre getGenreById(Integer genreId) {
         if (genreId == null) {
             throw new ValidationException("Передан пустой аргумент!");
         }
-        Genre genre;
-        SqlRowSet genreRows = jdbcTemplate.queryForRowSet("SELECT * FROM genres WHERE id = ?", genreId);
-        if (genreRows.first()) {
-            genre = new Genre(
-                    genreRows.getInt("id"),
-                    genreRows.getString("name")
-            );
-        } else {
-            throw new DataNotFoundException("Жанр с ID=" + genreId + " не найден!");
-        }
-        return genre;
+        exists(genreId);
+        String sql = "SELECT id, name FROM genres WHERE id = ?";
+        List<Genre> genres = jdbcTemplate.query(sql, GenreStorage::toGenre, genreId);
+
+        return genres.get(0);
     }
 
     public void delete(Film film) {
@@ -51,7 +45,7 @@ public class GenreStorage {
     }
 
     public void add(Film film) {
-        if (film.getGenres() != null) {
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             for (Genre genre : film.getGenres()) {
                 jdbcTemplate.update("INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)",
                         film.getId(), genre.getId());
@@ -65,5 +59,11 @@ public class GenreStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(
                 rs.getInt("genre_id"), rs.getString("name")), filmId
         );
+    }
+
+    public boolean exists(Integer id) {
+        String sql = "SELECT CASE WHEN COUNT(id) > 0 THEN true ELSE false END FROM genres WHERE id = ?";
+        Boolean exists = jdbcTemplate.queryForObject(sql, Boolean.class, id);
+        return exists != null && exists;
     }
 }

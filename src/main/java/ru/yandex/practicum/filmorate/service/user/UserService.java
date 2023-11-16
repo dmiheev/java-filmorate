@@ -1,33 +1,53 @@
 package ru.yandex.practicum.filmorate.service.user;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friend.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
     private final FriendStorage friendStorage;
 
-    @Autowired
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendStorage friendStorage) {
-        this.userStorage = userStorage;
-        this.friendStorage = friendStorage;
+    public User create(User user) {
+        isValidUser(user);
+        return userStorage.create(user);
+    }
+
+    public User update(User user) {
+        isValidUser(user);
+        return userStorage.update(user);
+    }
+
+    public User delete(Long id) {
+        exists(id);
+        userStorage.delete(id);
+        return userStorage.getUserById(id);
+    }
+
+    public List<User> getUsers() {
+        return userStorage.getUsers();
+    }
+
+    public User getUserById(Long id) {
+        exists(id);
+        return userStorage.getUserById(id);
     }
 
     public void addFriend(Long userId, Long friendId) {
         if (userId == friendId) {
             throw new ValidationException("Нельзя добавить самого себя в друзья!");
         }
+        exists(userId);
+        exists(friendId);
         friendStorage.addFriend(userId, friendId);
     }
 
@@ -35,27 +55,41 @@ public class UserService {
         if (userId == friendId) {
             throw new ValidationException("Нельзя удалить самого себя из друзей!");
         }
+        exists(userId);
+        exists(friendId);
         friendStorage.deleteFriend(userId, friendId);
     }
 
     public List<User> getFriends(Long userId) {
-        List<User> friends = new ArrayList<>();
-        if (userId != null) {
-            friends = friendStorage.getFriends(userId);
-        }
-        return friends;
+        exists(userId);
+        return friendStorage.getFriends(userId);
     }
 
     public List<User> getCommonFriends(Long firstUserId, Long secondUserId) {
+        exists(firstUserId);
+        exists(secondUserId);
 
-        User firstUser = userStorage.getUserById(firstUserId);
-        User secondUser = userStorage.getUserById(secondUserId);
-        Set<User> intersection = null;
-
-        if ((firstUser != null) && (secondUser != null)) {
-            intersection = new HashSet<>(friendStorage.getFriends(firstUserId));
-            intersection.retainAll(friendStorage.getFriends(secondUserId));
-        }
-        return new ArrayList<User>(intersection);
+        return friendStorage.getCommonFriends(firstUserId, secondUserId);
     }
+
+    private void isValidUser(User user) {
+        if (!user.getEmail().contains("@")) {
+            throw new ValidationException("Некорректный e-mail пользователя: " + user.getEmail());
+        }
+        if ((user.getLogin().isEmpty()) || (user.getLogin().contains(" "))) {
+            throw new ValidationException("Некорректный логин пользователя: " + user.getLogin());
+        }
+
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            throw new ValidationException("Некорректная дата рождения пользователя: " + user.getBirthday());
+        }
+        exists(user.getId());
+    }
+
+    public void exists(Long id) {
+        if (id != null && !userStorage.exists(id)) {
+            throw new DataNotFoundException(String.format("Не найден пользователь по id = %d.", id));
+        }
+    }
+
 }

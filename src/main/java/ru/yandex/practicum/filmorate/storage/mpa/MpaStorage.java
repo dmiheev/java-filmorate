@@ -20,7 +20,7 @@ public class MpaStorage {
     }
 
     public List<Mpa> getAllMpa() {
-        String sql = "SELECT * FROM mpa_ratings";
+        String sql = "SELECT * FROM mpa_ratings ORDER BY id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Mpa(
                 rs.getInt("id"),
                 rs.getString("name"))
@@ -42,5 +42,12 @@ public class MpaStorage {
             throw new DataNotFoundException("Рейтинг с ID=" + mpaId + " не найден!");
         }
         return mpa;
+    }
+
+    public boolean exists(Integer id) {
+        String sql = "SELECT CASE WHEN COUNT(id) > 0 THEN true ELSE false END FROM mpa_ratings WHERE id = ?";
+        Boolean exists = jdbcTemplate.queryForObject(sql, Boolean.class, id);
+
+        return exists != null && exists;
     }
 }

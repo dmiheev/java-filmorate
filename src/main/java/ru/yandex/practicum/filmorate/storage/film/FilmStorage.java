@@ -14,4 +14,8 @@ public interface FilmStorage {
     Film getFilmById(Long filmId);
 
     Film delete(Long filmId);
+
+    List<Film> getPopular(Integer count);
+
+    boolean exists(Long id);
 }

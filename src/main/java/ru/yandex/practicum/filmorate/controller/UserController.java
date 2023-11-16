@@ -1,39 +1,32 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.Valid;
 import java.util.List;
 
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 @Slf4j
 public class UserController {
-    private final UserStorage userStorage;
-    private final UserService userService;
 
-    @Autowired
-    public UserController(@Qualifier("userDbStorage") UserStorage userStorage, UserService userService) {
-        this.userStorage = userStorage;
-        this.userService = userService;
-    }
+    private final UserService userService;
 
     @GetMapping
     public List<User> getUsers() {
         log.info("Получен GET-запрос к эндпоинту: '/users' на получение списка пользователей");
-        return userStorage.getUsers();
+        return userService.getUsers();
     }
 
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Long id) {
         log.info("Получен GET-запрос к эндпоинту: '/users/{}' на получение пользователя с ID={}", id, id);
-        return userStorage.getUserById(id);
+        return userService.getUserById(id);
     }
 
     @GetMapping("/{id}/friends")
@@ -63,20 +56,20 @@ public class UserController {
     @PostMapping
     public User create(@Valid @RequestBody User user) {
         log.info("Получен POST-запрос к эндпоинту: '/users' на добавление пользователя");
-        user = userStorage.create(user);
+        user = userService.create(user);
         return user;
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
         log.info("Получен PUT-запрос к эндпоинту: '/users' на обновление пользователя с ID={}", user.getId());
-        user = userStorage.update(user);
+        user = userService.update(user);
         return user;
     }
 
     @DeleteMapping("/{id}")
     public User delete(@PathVariable Long id) {
         log.info("Получен DELETE-запрос к эндпоинту: '/users' на удаление пользователя с ID={}", id);
-        return userStorage.delete(id);
+        return userService.delete(id);
     }
 }
