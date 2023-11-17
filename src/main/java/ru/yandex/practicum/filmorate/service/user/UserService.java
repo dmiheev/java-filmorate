@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friend.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -73,16 +72,6 @@ public class UserService {
     }
 
     private void isValidUser(User user) {
-        if (!user.getEmail().contains("@")) {
-            throw new ValidationException("Некорректный e-mail пользователя: " + user.getEmail());
-        }
-        if ((user.getLogin().isEmpty()) || (user.getLogin().contains(" "))) {
-            throw new ValidationException("Некорректный логин пользователя: " + user.getLogin());
-        }
-
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidationException("Некорректная дата рождения пользователя: " + user.getBirthday());
-        }
         exists(user.getId());
     }
 

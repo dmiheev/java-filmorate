@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
@@ -13,7 +14,9 @@ import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -82,18 +85,18 @@ public class FilmService {
         return filmStorage.getPopular(count);
     }
 
+    public void putGenres(Film film) {
+        genreStorage.delete(film);
+        genreStorage.add(film);
+    }
+
+    public Set<Genre> getFilmGenres(Long filmId) {
+        return new HashSet<>(genreStorage.getFilmGenres(filmId));
+    }
+
     private void isValidFilm(Film film) {
-        if (film.getName().isEmpty()) {
-            throw new ValidationException("Название фильма не должно быть пустым!");
-        }
-        if ((film.getDescription().length()) > 200 || (film.getDescription().isEmpty())) {
-            throw new ValidationException("Описание фильма больше 200 символов или пустое: " + film.getDescription().length());
-        }
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException("Некорректная дата релиза фильма: " + film.getReleaseDate());
-        }
-        if (film.getDuration() <= 0) {
-            throw new ValidationException("Продолжительность должна быть положительной: " + film.getDuration());
         }
 
         exists(film.getId());

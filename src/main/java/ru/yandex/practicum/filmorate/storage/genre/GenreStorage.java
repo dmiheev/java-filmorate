@@ -1,14 +1,17 @@
 package ru.yandex.practicum.filmorate.storage.genre;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -46,10 +49,20 @@ public class GenreStorage {
 
     public void add(Film film) {
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update("INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)",
-                        film.getId(), genre.getId());
-            }
+            final ArrayList<Genre> genreList = new ArrayList<>(film.getGenres());
+
+            jdbcTemplate.batchUpdate(
+                    "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)",
+                    new BatchPreparedStatementSetter() {
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setLong(1, film.getId());
+                            ps.setInt(2, genreList.get(i).getId());
+                        }
+
+                        public int getBatchSize() {
+                            return genreList.size();
+                        }
+                    });
         }
     }
 

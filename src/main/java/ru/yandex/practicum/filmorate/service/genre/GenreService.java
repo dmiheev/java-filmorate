@@ -4,13 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DataNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -25,15 +22,6 @@ public class GenreService {
     public Genre getGenreById(Integer id) {
         exists(id);
         return genreStorage.getGenreById(id);
-    }
-
-    public void putGenres(Film film) {
-        genreStorage.delete(film);
-        genreStorage.add(film);
-    }
-
-    public Set<Genre> getFilmGenres(Long filmId) {
-        return new HashSet<>(genreStorage.getFilmGenres(filmId));
     }
 
     public void exists(Integer id) {
