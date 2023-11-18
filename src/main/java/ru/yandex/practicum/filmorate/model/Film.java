@@ -1,47 +1,43 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-@Builder(toBuilder = true)
-public class Film extends StorageData {
-    @NotBlank(message = "Название фильма не может быть пустым.")
+@SuperBuilder
+@NoArgsConstructor
+public class Film {
+    private Long id;
+    @NotBlank
     private String name;
-
-    @Size(min = 1, max = 200, message = "Максимальная длина описания для фильма — 200 символов.")
+    @Size(min = 1, max = 200)
     private String description;
-
+    @NotNull
     private LocalDate releaseDate;
+    @Positive
+    private Integer duration;
+    @NotNull
+    private Mpa mpa;
+    private Set<Genre> genres = new HashSet<>();
 
-    @Positive(message = "Продолжительность должна быть положительной.")
-    private int duration;
-
-    @JsonIgnore
-    private Set<Long> userIds = new HashSet<>();
-
-    @JsonIgnore
-    private long rate = 0;
-
-    public void addLike(long userId) {
-        userIds.add(userId);
-        rate = userIds.size();
-    }
-
-    public void removeLike(long userId) {
-        userIds.remove(userId);
-        rate = userIds.size();
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", name);
+        values.put("description", description);
+        values.put("release_Date", releaseDate);
+        values.put("duration", duration);
+        values.put("mpa_rating_id", mpa.getId());
+        return values;
     }
 }

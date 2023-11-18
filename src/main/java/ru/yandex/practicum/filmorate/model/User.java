@@ -1,35 +1,48 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Past;
+import javax.validation.constraints.PastOrPresent;
+import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-@Builder(toBuilder = true)
-public class User extends StorageData {
-    @Email(message = "Электронная почта не соответствует формату.")
-    @NotBlank(message = "Электронная почта должна быть заполнена.")
+@SuperBuilder
+@NoArgsConstructor
+public class User {
+    private Long id;
+    @Email
     private String email;
-
-    @NotBlank(message = "Логин не может быть пустым и содержать пробелы.")
+    @NotBlank
+    @Pattern(regexp = "\\S*$")
     private String login;
-
+    @Setter(AccessLevel.NONE)
     private String name;
-
-    @Past(message = "Дата рождения не может быть в будущем.")
+    @PastOrPresent
     private LocalDate birthday;
 
-    @JsonIgnore
-    private transient Set<Long> friendIds = new HashSet<>();
+    public void setName(String name) {
+        if ((name == null) || (name.isEmpty()) || (name.isBlank())) {
+            this.name = login;
+        } else {
+            this.name = name;
+        }
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("email", email);
+        values.put("login", login);
+        values.put("name", name);
+        values.put("birthday", birthday);
+        return values;
+    }
 }

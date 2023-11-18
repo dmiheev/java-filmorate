@@ -2,63 +2,68 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Update;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import javax.validation.Valid;
 import java.util.List;
 
 @RestController
+@RequestMapping("/films")
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/films")
 public class FilmController {
 
-    private final FilmService service;
+    private final FilmService filmService;
 
-    @GetMapping()
-    public List<Film> getAllFilms() {
-        final List<Film> films = service.getAll();
-        log.info("Get all films {}", films.size());
-        return films;
-    }
-
-    @PostMapping()
-    public Film addFilm(@Valid @RequestBody final Film film) {
-        log.info("Получен запрос к эндпоинту: POST /film, тело запроса: '{}'", film);
-        return service.create(film);
-    }
-
-    @PutMapping()
-    public Film setFilm(@Validated(Update.class) @RequestBody final Film film) {
-        log.info("Получен запрос к эндпоинту: PUT /film, тело запроса: '{}'", film);
-        return service.update(film);
+    @GetMapping
+    public List<Film> getFilms() {
+        log.info("Получен GET-запрос к эндпоинту: '/films'");
+        return filmService.getFilms();
     }
 
     @GetMapping("/{id}")
-    public Film get(@PathVariable long id) {
-        log.info("Get film id={}", id);
-        return service.get(id);
-    }
-
-    @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable long id, @PathVariable long userId) {
-        log.info("Add like film id={} from user={}", id, userId);
-        service.addLike(id, userId);
-    }
-
-    @DeleteMapping("/{id}/like/{userId}")
-    public void removeLike(@PathVariable long id, @PathVariable long userId) {
-        log.info("Remove like film id={} from user={}", id, userId);
-        service.removeLike(id, userId);
+    public Film getFilmById(@PathVariable Long id) {
+        log.info("Получен GET-запрос к эндпоинту: '/films/{}' на получение фильма с ID={}", id, id);
+        return filmService.getFilmById(id);
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
-        log.info("Get popular films count = {}", count);
-        return service.getPopular(count);
+    public List<Film> getPopular(@RequestParam(name = "count", defaultValue = "10") Integer count) {
+        log.info("Получен GET-запрос к эндпоинту: '/films/popular'");
+        return filmService.getPopular(count);
+    }
+
+    @PostMapping
+    public Film create(@Valid @RequestBody Film film) {
+        log.info("Получен POST-запрос к эндпоинту: '/films' на добавление фильма");
+        film = filmService.create(film);
+        return film;
+    }
+
+    @PutMapping
+    public Film update(@Valid @RequestBody Film film) {
+        log.info("Получен PUT-запрос к эндпоинту: '/films' на обновление фильма с ID={}", film.getId());
+        film = filmService.update(film);
+        return film;
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Получен PUT-запрос на добавление лайка");
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable Long id, @PathVariable Long userId) {
+        log.info("Получен DELETE-запрос на удаление лайка");
+        filmService.deleteLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}")
+    public Film delete(@PathVariable Long id) {
+        log.info("Получен DELETE-запрос к эндпоинту: '/films' на удаление фильма с ID={}", id);
+        return filmService.delete(id);
     }
 }
