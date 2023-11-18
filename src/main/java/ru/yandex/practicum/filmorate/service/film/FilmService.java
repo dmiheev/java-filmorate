@@ -100,19 +100,12 @@ public class FilmService {
         }
 
         exists(film.getId());
-        film.getGenres().forEach(genre -> checkGenreExists(genre.getId()));
         checkMpaExists(film.getMpa().getId());
     }
 
     public void exists(Long id) {
         if (id != null && !filmStorage.exists(id)) {
             throw new DataNotFoundException(String.format("Не найден фильм по id = %d.", id));
-        }
-    }
-
-    private void checkGenreExists(Integer genreId) {
-        if (genreId != null && !genreStorage.exists(genreId)) {
-            throw new DataNotFoundException(String.format("Не найден жанр по id = %d.", genreId));
         }
     }
 
